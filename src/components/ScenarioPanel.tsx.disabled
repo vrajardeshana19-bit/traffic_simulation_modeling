@@ -1,0 +1,95 @@
+/**
+ * ScenarioPanel - Configure scenario parameters (spawn rate, vehicle count, etc.)
+ */
+
+import React, { useState } from 'react';
+import { useSimulationStore } from '../store/simulationStore';
+import { SCENARIO_PRESETS } from '../scenarios/presets';
+
+/**
+ * Scenario configuration panel
+ */
+export const ScenarioPanel: React.FC = () => {
+  const config = useSimulationStore((state) => state.config);
+  const updateConfig = useSimulationStore((state) => state.updateConfig);
+  const [selectedPreset, setSelectedPreset] = useState<string>(
+    config?.name || SCENARIO_PRESETS[0].name
+  );
+
+  const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const presetName = e.target.value;
+    setSelectedPreset(presetName);
+
+    const preset = SCENARIO_PRESETS.find((s) => s.name === presetName);
+    if (preset) {
+      updateConfig(preset);
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md space-y-4">
+      <h2 className="text-lg font-bold text-gray-900 dark:text-white">Scenario</h2>
+
+      {/* Preset Selector */}
+      <div className="space-y-2">
+        <label htmlFor="preset-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Preset:
+        </label>
+        <select
+          id="preset-select"
+          value={selectedPreset}
+          onChange={handlePresetChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+        >
+          {SCENARIO_PRESETS.map((preset) => (
+            <option key={preset.name} value={preset.name}>
+              {preset.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Current Scenario Info */}
+      {config && (
+        <div className="space-y-2 text-sm">
+          <p className="text-gray-700 dark:text-gray-300">{config.description}</p>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <span className="font-medium text-gray-900 dark:text-white">Spawn Rate:</span>
+              <p className="text-gray-600 dark:text-gray-400">
+                {config.spawnRate} vehicles/sec
+              </p>
+            </div>
+            <div>
+              <span className="font-medium text-gray-900 dark:text-white">Vehicle Count:</span>
+              <p className="text-gray-600 dark:text-gray-400">
+                {config.vehicleCount}
+              </p>
+            </div>
+            <div>
+              <span className="font-medium text-gray-900 dark:text-white">Signal Timing:</span>
+              <p className="text-gray-600 dark:text-gray-400">
+                {config.signalTiming}s
+              </p>
+            </div>
+            <div>
+              <span className="font-medium text-gray-900 dark:text-white">Preset:</span>
+              <p className="text-gray-600 dark:text-gray-400">
+                {config.preset}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Info Box */}
+      <div className="p-3 bg-blue-50 dark:bg-blue-900 rounded-md text-xs text-blue-900 dark:text-blue-100">
+        💡 Select a preset to adjust traffic scenario parameters. Real-time simulation
+        adjustments available in future updates.
+      </div>
+    </div>
+  );
+};
+
+export default ScenarioPanel;

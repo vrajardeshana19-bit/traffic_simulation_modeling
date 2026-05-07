@@ -1,0 +1,183 @@
+/**
+ * MetricsDashboard - Display live metrics charts using Recharts
+ */
+
+import React from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { useSimulationStore } from '../store/simulationStore';
+
+interface ChartDataPoint {
+  time: number;
+  avgWaitTime: number;
+  throughput: number;
+  activeVehicles: number;
+  completedTrips: number;
+}
+
+/**
+ * Metrics dashboard with Recharts visualizations
+ */
+export const MetricsDashboard: React.FC = () => {
+  const metrics = useSimulationStore((state) => state.metrics);
+
+  // Transform metrics into chart data
+  const chartData: ChartDataPoint[] = metrics.map((metric, index) => ({
+    time: index,
+    avgWaitTime: parseFloat(metric.avgWaitTime.toFixed(2)),
+    throughput: metric.throughput,
+    activeVehicles: metric.activeVehicles,
+    completedTrips: metric.completedTrips,
+  }));
+
+  // Get current stats
+  const currentMetrics = metrics.length > 0 ? metrics[metrics.length - 1] : null;
+
+  return (
+    <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md space-y-4">
+      <h2 className="text-lg font-bold text-gray-900 dark:text-white">Metrics Dashboard</h2>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded-lg">
+          <p className="text-xs text-gray-600 dark:text-gray-400">Avg Wait Time</p>
+          <p className="text-2xl font-bold">{currentMetrics?.avgWaitTime.toFixed(2) ?? '0.00'}s</p>
+        </div>
+
+        <div className="bg-green-50 dark:bg-green-900 p-3 rounded-lg">
+          <p className="text-xs text-gray-600 dark:text-gray-400">Completed Trips</p>
+          <p className="text-2xl font-bold">{currentMetrics?.completedTrips ?? 0}</p>
+        </div>
+
+        <div className="bg-yellow-50 dark:bg-yellow-900 p-3 rounded-lg">
+          <p className="text-xs text-gray-600 dark:text-gray-400">Active Vehicles</p>
+          <p className="text-2xl font-bold">{currentMetrics?.activeVehicles ?? 0}</p>
+        </div>
+
+        <div className="bg-orange-50 dark:bg-orange-900 p-3 rounded-lg">
+          <p className="text-xs text-gray-600 dark:text-gray-400">Throughput</p>
+          <p className="text-2xl font-bold">{currentMetrics?.throughput ?? 0}</p>
+        </div>
+      </div>
+
+      {/* Charts */}
+      {chartData.length > 0 ? (
+        <div className="space-y-4">
+          {/* Wait Time Chart */}
+          <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+            <h3 className="text-sm font-semibold mb-3 text-gray-900 dark:text-white">Average Wait Time</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="time"
+                  label={{ value: 'Time', position: 'insideBottomRight', offset: -5 }}
+                />
+                <YAxis label={{ value: 'Time (s)', angle: -90, position: 'insideLeft' }} />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="avgWaitTime"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                  name="Avg Wait (sec)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Throughput Chart */}
+          <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+            <h3 className="text-sm font-semibold mb-3 text-gray-900 dark:text-white">Completed Trips</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="time"
+                  label={{ value: 'Time', position: 'insideBottomRight', offset: -5 }}
+                />
+                <YAxis label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="completedTrips"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                  name="Completed Trips"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Active Vehicles Chart */}
+          <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+            <h3 className="text-sm font-semibold mb-3 text-gray-900 dark:text-white">Active Vehicles</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="time"
+                  label={{ value: 'Time', position: 'insideBottomRight', offset: -5 }}
+                />
+                <YAxis label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="activeVehicles"
+                  stroke="#eab308"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                  name="Active Vehicles"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          Start the simulation to see metrics
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MetricsDashboard;
+                  stroke="#dc2626"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                  name="Congestion %"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      ) : (
+        <div className="card bg-gray-50 dark:bg-gray-700 text-center py-8">
+          <p className="text-gray-600 dark:text-gray-400">
+            Start simulation to see metrics...
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MetricsDashboard;
