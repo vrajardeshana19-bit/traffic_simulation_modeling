@@ -27,6 +27,9 @@ export class SimulationEngine {
   private config: ScenarioConfig;
 
   private vehicleSpawnCounter: number = 0;
+  private totalWaitTime: number = 0;
+  private waitCount: number = 0;
+  private completedTrips: number = 0;
 
   constructor(config: ScenarioConfig) {
     this.config = config;
@@ -71,6 +74,9 @@ export class SimulationEngine {
     this.completedVehicles = [];
     this.spawnTimer = 0;
     this.vehicleSpawnCounter = 0;
+    this.totalWaitTime = 0;
+    this.waitCount = 0;
+    this.completedTrips = 0;
 
     // Reset all signals
     for (const signal of this.signals.values()) {
@@ -185,7 +191,14 @@ export class SimulationEngine {
 
         if (signal && signal.phase !== 'green') {
           vehicle.setTargetSpeed(0, 100);
+          vehicle.startWaiting();
         } else {
+          if (vehicle.state === 'waiting') {
+            const waitDuration = vehicle.getWaitTime();
+            this.totalWaitTime += waitDuration;
+            this.waitCount++;
+            vehicle.resumeMoving();
+          }
           vehicle.setTargetSpeed(vehicle.maxSpeed, 50);
         }
       } else {
@@ -194,6 +207,8 @@ export class SimulationEngine {
 
       // Check if completed
       if (vehicle.isCompleted()) {
+        this.completedTrips++;
+        console.log('Trip completed');
         this.completedVehicles.push(vehicle);
         this.vehicles.splice(i, 1);
       }
@@ -204,13 +219,13 @@ export class SimulationEngine {
    * Collect and emit metrics
    */
   private emitMetrics(): void {
-    const avgWaitTime = this.vehicles.reduce((sum, v) => sum + v.getWaitTime(), 0) / Math.max(1, this.vehicles.length);
+    const avgWaitTime = this.waitCount > 0 ? this.totalWaitTime / this.waitCount : 0;
 
     const metrics: SimMetrics = {
       avgWaitTime,
       throughput: this.completedVehicles.length,
       activeVehicles: this.vehicles.length,
-      completedTrips: this.completedVehicles.length,
+      completedTrips: this.completedTrips,
       timestamp: Date.now(),
     };
 

@@ -18,11 +18,16 @@ export const App: React.FC = () => {
   const activeVehicles = engine ? engine.getVehicles().length : currentMetrics?.activeVehicles ?? 0;
   const avgWait = currentMetrics?.avgWaitTime ?? 0;
   const throughputPerMin = useMemo(() => {
-    if (!currentMetrics || metrics.length < 2) return 0;
-    const firstTimestamp = metrics[0].timestamp;
-    const minutes = Math.max(1, (currentMetrics.timestamp - firstTimestamp) / 60000);
-    return Math.round((currentMetrics.completedTrips ?? 0) / minutes);
-  }, [currentMetrics, metrics]);
+    if (metrics.length < 2) return 0;
+    const recentMetrics = metrics.slice(-60); // last 60 entries
+    const tripsCompleted = recentMetrics.length > 1
+      ? recentMetrics[recentMetrics.length - 1].completedTrips - recentMetrics[0].completedTrips
+      : 0;
+    const timeMinutes = recentMetrics.length > 1
+      ? (recentMetrics[recentMetrics.length - 1].timestamp - recentMetrics[0].timestamp) / 60000
+      : 1;
+    return Math.round(tripsCompleted / Math.max(0.016, timeMinutes));
+  }, [metrics]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
