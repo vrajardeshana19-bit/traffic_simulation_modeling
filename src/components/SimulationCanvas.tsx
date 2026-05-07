@@ -6,7 +6,6 @@ import React, { useEffect, useRef } from 'react';
 import { useSimulationStore } from '../store/simulationStore';
 import type { RoadNode, RoadEdge } from '../engine/types';
 import { Vehicle } from '../engine/Vehicle';
-import { TrafficSignal } from '../engine/TrafficSignal';
 
 export const SimulationCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
