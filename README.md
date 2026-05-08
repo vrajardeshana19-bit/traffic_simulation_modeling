@@ -1,73 +1,174 @@
-# React + TypeScript + Vite
+# 🚦 TrafficSim — Real-Time Traffic Simulation & Modeling
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-00ff88?style=for-the-badge)](https://traffic-simulation-modeling.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-4f8ef7?style=for-the-badge)](https://github.com/vrajardeshana19-bit/traffic_simulation_modeling)
 
-Currently, two official plugins are available:
+A real-time, browser-based traffic simulation tool built to model traffic behavior, analyze different scenarios, and propose improvements to existing traffic systems.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🎯 Problem Statement
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Traffic congestion is one of the biggest urban challenges worldwide. Poor signal timing, accidents, and rush hour density cause millions of hours of lost productivity daily. TrafficSim allows urban planners, researchers, and students to:
 
-## Expanding the ESLint configuration
+- Simulate real traffic scenarios in real time
+- Analyze congestion patterns visually
+- Compare different signal timing strategies
+- Propose data-driven improvements
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## ✨ Features
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 🚗 Core Simulation
+- **4x4 Road Network** — 16 intersections with bidirectional roads
+- **Vehicle Agents** — Intelligent vehicles with BFS pathfinding
+- **Traffic Signals** — Automatic green → yellow → red phase cycling
+- **Real-time Rendering** — Smooth 60fps HTML5 Canvas animation
+- **Speed Control** — 1x, 2x, 5x, 10x simulation speed
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 📊 Analytics Dashboard
+- **Live Metrics** — Average wait time, throughput, active vehicles, completed trips
+- **Real-time Charts** — Line charts tracking metrics over time
+- **Header Stats** — Instant overview of key performance indicators
+
+### 🎮 Scenario Control
+- **4 Preset Scenarios:**
+  - 🟢 Normal Traffic — Balanced flow, standard signals
+  - 🔴 Rush Hour — High density, 8 vehicles/sec spawn rate
+  - 🟡 Accident — Lane blocked at center, observe rerouting
+  - 🔵 Signal Optimized — Short cycles for maximum throughput
+- **Custom Settings** — Manual sliders for vehicle count, spawn rate, signal timing
+- **Apply & Restart** — Instantly apply new configuration
+
+### 🔗 Sharing
+- **URL Sharing** — Encode any scenario as a shareable URL
+- **One-click Copy** — Share exact simulation state with anyone
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Purpose |
+|------------|---------|
+| React + TypeScript | UI Framework |
+| HTML5 Canvas | Simulation Rendering |
+| Zustand | State Management |
+| Recharts | Analytics Charts |
+| Vite | Build Tool |
+| Vercel | Deployment |
+
+---
+
+## 🏗️ Architecture
+
+
+src/
+├── engine/           # Core simulation logic
+│   ├── types.ts      # TypeScript interfaces
+│   ├── RoadNetwork.ts # Graph-based road system
+│   ├── Vehicle.ts    # Vehicle agent class
+│   ├── TrafficSignal.ts # Signal phase controller
+│   └── SimulationEngine.ts # Main tick loop
+├── components/       # React UI components
+│   ├── SimulationCanvas.tsx # Canvas renderer
+│   ├── ScenarioPanel.tsx    # Scenario controls
+│   ├── MetricsDashboard.tsx # Live charts
+│   └── ControlBar.tsx       # Play/pause/speed
+├── store/
+│   └── simulationStore.ts   # Zustand state
+└── scenarios/
+└── presets.ts           # Preset configurations
+
+
+### Import Chain (Zero Circular Dependencies)
+
+
+types.ts ← RoadNetwork.ts, Vehicle.ts, TrafficSignal.ts
+← SimulationEngine.ts ← simulationStore.ts
+← App.tsx ← SimulationCanvas.tsx
+
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js v18+
+- npm or yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/vrajardeshana19-bit/traffic_simulation_modeling.git
+
+# Navigate to project
+cd traffic_simulation_modeling
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open `http://localhost:5173` in your browser.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Build for Production
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
 ```
+
+---
+
+## 🎮 How to Use
+
+1. **Open the live demo** or run locally
+2. Click **Play** — simulation starts automatically
+3. **Select a preset** scenario from the sidebar
+4. **Adjust sliders** to customize vehicle count, spawn rate, signal timing
+5. **Watch metrics** update in real time on the dashboard
+6. **Share your scenario** using the Share button
+
+---
+
+## 👥 Team
+
+| Name | Role | GitHub |
+|------|------|--------|
+| Vraj Ardeshana | Core Engine, Canvas Renderer, Simulation Logic | [@vrajardeshana19-bit](https://github.com/vrajardeshana19-bit) |
+| Yuktha P | Analytics Dashboard, UI Components, Deployment | [@yukthaprakash](https://github.com/yukthaprakash) |
+
+---
+
+## 🏆 Built For
+
+This project was built as part of a **Traffic Simulation and Modeling** hackathon problem statement:
+
+> *"Build a simulation tool to model traffic behavior, analyze different scenarios, and propose improvements to existing traffic systems"*
+
+---
+
+## 🔮 Future Roadmap
+
+- [ ] Custom road layout designer (draw your own map)
+- [ ] Google Maps image upload + AI road detection
+- [ ] AI-powered signal optimization suggestions
+- [ ] Multi-city comparison
+- [ ] Export reports as PDF
+
+---
+
+## 📄 License
+
+MIT License — feel free to use this project for learning and research.
+
+---
+
+<div align="center">
+  <strong>Built with ❤️ by Vraj Ardeshana & Yuktha P</strong>
+  <br>
+  <a href="https://traffic-simulation-modeling.vercel.app">🌐 Live Demo</a>
+</div>
