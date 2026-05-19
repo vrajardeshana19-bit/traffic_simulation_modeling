@@ -5,7 +5,15 @@
 import React from 'react';
 import { useSimulationStore } from '../store/simulationStore';
 
-export const ControlBar: React.FC = () => {
+interface ControlBarProps {
+  congestionViewEnabled?: boolean;
+  onToggleCongestionView?: () => void;
+}
+
+export const ControlBar: React.FC<ControlBarProps> = ({ 
+  congestionViewEnabled = false, 
+  onToggleCongestionView 
+}) => {
   const isRunning = useSimulationStore((state) => state.isRunning);
   const isPaused = useSimulationStore((state) => state.isPaused);
   const speed = useSimulationStore((state) => state.speed);
@@ -70,6 +78,24 @@ export const ControlBar: React.FC = () => {
           }}
         >
           Reset
+        </button>
+
+        <button
+          onClick={onToggleCongestionView}
+          style={{
+            height: '36px',
+            padding: '0 16px',
+            borderRadius: '6px',
+            border: `1px solid ${congestionViewEnabled ? '#4f8ef7' : '#1a2035'}`,
+            background: 'transparent',
+            color: congestionViewEnabled ? '#ffffff' : '#6b7280',
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontSize: '13px',
+            transition: 'all 0.2s',
+          }}
+        >
+          Congestion View
         </button>
 
         <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>

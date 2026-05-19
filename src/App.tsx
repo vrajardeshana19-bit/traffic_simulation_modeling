@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSimulationStore } from './store/simulationStore';
 import { SimulationCanvas } from './components/SimulationCanvas';
 import { ControlBar } from './components/ControlBar';
 import { ScenarioPanel } from './components/ScenarioPanel';
 import { MetricsDashboard } from './components/MetricsDashboard';
+import { CongestionOverlay } from './components/CongestionOverlay';
+import { ScenarioCompare } from './components/ScenarioCompare';
 
 export const App: React.FC = () => {
   const isRunning = useSimulationStore((state) => state.isRunning);
@@ -13,6 +15,9 @@ export const App: React.FC = () => {
   const updateConfig = useSimulationStore((state) => state.updateConfig);
   const startSim = useSimulationStore((state) => state.startSim);
   const [copied, setCopied] = useState(false);
+  const [congestionViewEnabled, setCongestionViewEnabled] = useState(false);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 600 });
 
   const currentMetrics = metrics.length > 0 ? metrics[metrics.length - 1] : null;
   const activeVehicles = engine ? engine.getVehicles().length : currentMetrics?.activeVehicles ?? 0;
@@ -47,6 +52,23 @@ export const App: React.FC = () => {
       startSim();
     }
   }, [engine, startSim]);
+
+  useEffect(() => {
+    // Track canvas dimensions for congestion overlay
+    const updateDimensions = () => {
+      if (canvasContainerRef.current) {
+        const rect = canvasContainerRef.current.getBoundingClientRect();
+        setCanvasDimensions({
+          width: rect.width,
+          height: rect.height,
+        });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
 
   const handleShare = async () => {
     try {
@@ -129,18 +151,36 @@ export const App: React.FC = () => {
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', minHeight: 0, minWidth: 0 }}>
-          <SimulationCanvas />
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0, flexDirection: 'column' }}>
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+          <div 
+            ref={canvasContainerRef}
+            style={{ 
+              flex: 1, 
+              position: 'relative', 
+              overflow: 'hidden', 
+              minHeight: 0, 
+              minWidth: 0 
+            }}
+          >
+            <SimulationCanvas />
+            <CongestionOverlay 
+              isEnabled={congestionViewEnabled}
+              canvasWidth={canvasDimensions.width}
+              canvasHeight={canvasDimensions.height}
+            />
+          </div>
+
+          <div style={{ width: '320px', overflowY: 'auto', background: '#080b14', borderLeft: '1px solid #1a2035', flexShrink: 0, minHeight: 0 }}>
+            <ScenarioPanel />
+            <MetricsDashboard />
+          </div>
         </div>
 
-        <div style={{ width: '320px', overflowY: 'auto', background: '#080b14', borderLeft: '1px solid #1a2035', flexShrink: 0, minHeight: 0 }}>
-          <ScenarioPanel />
-          <MetricsDashboard />
-        </div>
+        <ScenarioCompare />
       </div>
 
-      <ControlBar />
+      <ControlBar congestionViewEnabled={congestionViewEnabled} onToggleCongestionView={() => setCongestionViewEnabled(!congestionViewEnabled)} />
 
       <style>{`
         @keyframes pulseDot {

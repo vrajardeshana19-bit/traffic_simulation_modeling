@@ -1,110 +1,255 @@
 /**
- * MetricsDashboard - Display live metrics charts using Recharts
+ * MetricsDashboard - Live analytics dashboard with metric cards and charts
  */
 
-import React from 'react';
-import { useSimulationStore } from '../store/simulationStore';
+import React, { useMemo } from 'react';
 import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  CartesianGrid,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
+  ResponsiveContainer,
 } from 'recharts';
+import { useSimulationStore } from '../store/simulationStore';
 
-const metricCards = [
-  { label: 'Avg Wait', color: '#ffd700', key: 'avgWaitTime', suffix: 's' },
-  { label: 'Completed Trips', color: '#00ff88', key: 'completedTrips', suffix: '' },
-  { label: 'Active Vehicles', color: '#4f8ef7', key: 'activeVehicles', suffix: '' },
-  { label: 'Throughput', color: '#c44ff7', key: 'throughput', suffix: '/min' },
-];
+interface MetricCardProps {
+  label: string;
+  value: string | number;
+  accent: string;
+}
+
+const MetricCard: React.FC<MetricCardProps> = ({ label, value, accent }) => (
+  <div
+    style={{
+      background: '#0d1526',
+      border: '1px solid #1a2035',
+      borderRadius: '6px',
+      padding: '16px',
+      textAlign: 'center',
+      borderBottom: `3px solid ${accent}`,
+    }}
+  >
+    <div
+      style={{
+        fontSize: '10px',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+        textTransform: 'uppercase',
+        color: '#6b7280',
+        marginBottom: '8px',
+      }}
+    >
+      {label}
+    </div>
+    <div
+      style={{
+        fontSize: '20px',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+        color: '#ffffff',
+        fontWeight: 'bold',
+      }}
+    >
+      {value}
+    </div>
+  </div>
+);
 
 export const MetricsDashboard: React.FC = () => {
   const metrics = useSimulationStore((state) => state.metrics);
 
+  // Get last 60 entries for charts
+  const recentMetrics = useMemo(() => {
+    if (metrics.length === 0) return [];
+    return metrics.slice(-60).map((metric, index) => ({
+      time: index,
+      avgWaitTime: parseFloat(metric.avgWaitTime.toFixed(1)),
+      completedTrips: metric.completedTrips,
+      activeVehicles: metric.activeVehicles,
+    }));
+  }, [metrics]);
+
+  // Get current stats
   const currentMetrics = metrics.length > 0 ? metrics[metrics.length - 1] : null;
-  const throughputPerMin = React.useMemo(() => {
-    if (!currentMetrics || metrics.length < 2) return 0;
-    const minutes = Math.max(1, (currentMetrics.timestamp - metrics[0].timestamp) / 60000);
-    return Math.round((currentMetrics.completedTrips ?? 0) / minutes);
-  }, [currentMetrics, metrics]);
-
-  const values = {
-    avgWaitTime: currentMetrics?.avgWaitTime.toFixed(1) ?? '0.0',
-    completedTrips: currentMetrics?.completedTrips ?? 0,
-    activeVehicles: currentMetrics?.activeVehicles ?? 0,
-    throughput: throughputPerMin,
-  } as Record<string, string | number>;
-
-  const chartData = metrics.map((entry) => ({
-    time: new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    avgWaitTime: Number(entry.avgWaitTime.toFixed(1)),
-    completedTrips: entry.completedTrips,
-    activeVehicles: entry.activeVehicles,
-  }));
-
-  const chartConfigs = [
-    { label: 'Average Wait Time', key: 'avgWaitTime', color: '#ffd700', suffix: 's' },
-    { label: 'Completed Trips', key: 'completedTrips', color: '#00ff88', suffix: '' },
-    { label: 'Active Vehicles', key: 'activeVehicles', color: '#4f8ef7', suffix: '' },
-  ];
+  const avgWait = currentMetrics?.avgWaitTime ?? 0;
+  const completedTrips = currentMetrics?.completedTrips ?? 0;
+  const activeVehicles = currentMetrics?.activeVehicles ?? 0;
+  const throughput = currentMetrics?.throughput ?? 0;
 
   return (
-    <div style={{ padding: '20px', background: '#080b14', borderBottom: '1px solid #1a2035' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
-        <span style={{ color: '#4f8ef7', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase' }}>Metrics</span>
-        <div style={{ flex: 1, height: '1px', background: '#1a2035' }} />
+    <div
+      style={{
+        padding: '16px',
+        borderTop: '1px solid #1a2035',
+      }}
+    >
+      {/* 2x2 Metric Cards Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '12px',
+          marginBottom: '16px',
+        }}
+      >
+        <MetricCard
+          label="Avg Wait Time"
+          value={`${avgWait.toFixed(1)}s`}
+          accent="#ffd700"
+        />
+        <MetricCard
+          label="Completed Trips"
+          value={completedTrips}
+          accent="#00ff88"
+        />
+        <MetricCard
+          label="Active Vehicles"
+          value={activeVehicles}
+          accent="#4f8ef7"
+        />
+        <MetricCard
+          label="Throughput"
+          value={`${throughput.toFixed(0)}/min`}
+          accent="#9d4edd"
+        />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px', marginBottom: '20px' }}>
-        {metricCards.map((card) => (
-          <div key={card.key} style={{ background: '#0d1526', border: '1px solid #1a2035', borderRadius: '12px', padding: '16px', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <span style={{ width: '4px', height: '4px', background: card.color, display: 'inline-block' }} />
-              <span style={{ color: '#6b7280', fontSize: '10px', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', textTransform: 'uppercase' }}>{card.label}</span>
-            </div>
-            <div style={{ color: '#ffffff', fontSize: '20px', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontWeight: 700, textAlign: 'right' }}>
-              {values[card.key]}{card.suffix}
-            </div>
-            <div style={{ position: 'absolute', left: 0, bottom: 0, width: '100%', height: '3px', background: card.color, opacity: 0.25, borderRadius: '0 0 12px 12px' }} />
+      {/* Charts */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* Average Wait Time Chart */}
+        <div style={{ background: '#0d1526', border: '1px solid #1a2035', borderRadius: '6px', padding: '8px' }}>
+          <div
+            style={{
+              fontSize: '10px',
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+              textTransform: 'uppercase',
+              color: '#6b7280',
+              marginBottom: '8px',
+              paddingLeft: '8px',
+            }}
+          >
+            Avg Wait Time (60s)
           </div>
-        ))}
-      </div>
+          <ResponsiveContainer width="100%" height={120}>
+            <LineChart data={recentMetrics} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a2035" />
+              <XAxis
+                dataKey="time"
+                stroke="#6b7280"
+                style={{ fontSize: '10px' }}
+              />
+              <YAxis
+                stroke="#6b7280"
+                style={{ fontSize: '10px' }}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: '#0d1526',
+                  border: '1px solid #1a2035',
+                  borderRadius: '4px',
+                  color: '#ffffff',
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="avgWaitTime"
+                stroke="#ffd700"
+                dot={false}
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, minmax(0, 1fr))', gap: '12px' }}>
-        {chartConfigs.map((chart) => (
-          <div key={chart.key} style={{ background: '#0d1526', border: '1px solid #1a2035', borderRadius: '16px', padding: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <span style={{ color: '#ffffff', fontSize: '12px', fontWeight: 700 }}>{chart.label}</span>
-              <span style={{ color: chart.color, fontSize: '12px', fontWeight: 700 }}>{chart.suffix}</span>
-            </div>
-            {metrics.length === 0 ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '120px', color: '#6b7280', fontSize: '12px' }}>
-                Start simulation to see data
-              </div>
-            ) : (
-              <div style={{ width: '100%', height: '120px' }}>
-                <ResponsiveContainer width="100%" height={120}>
-                  <AreaChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id={`${chart.key}Gradient`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={chart.color} stopOpacity={0.35} />
-                        <stop offset="95%" stopColor={chart.color} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid stroke="#1a2035" vertical={false} />
-                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 10 }} minTickGap={20} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 10 }} width={32} />
-                    <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1a2035', color: '#ffffff' }} cursor={{ stroke: '#4f8ef7', strokeWidth: 1 }} />
-                    <Area type="monotone" dataKey={chart.key} stroke={chart.color} strokeWidth={2} fill={`url(#${chart.key}Gradient)`} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+        {/* Completed Trips Chart */}
+        <div style={{ background: '#0d1526', border: '1px solid #1a2035', borderRadius: '6px', padding: '8px' }}>
+          <div
+            style={{
+              fontSize: '10px',
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+              textTransform: 'uppercase',
+              color: '#6b7280',
+              marginBottom: '8px',
+              paddingLeft: '8px',
+            }}
+          >
+            Completed Trips (60s)
           </div>
-        ))}
+          <ResponsiveContainer width="100%" height={120}>
+            <LineChart data={recentMetrics} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a2035" />
+              <XAxis
+                dataKey="time"
+                stroke="#6b7280"
+                style={{ fontSize: '10px' }}
+              />
+              <YAxis
+                stroke="#6b7280"
+                style={{ fontSize: '10px' }}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: '#0d1526',
+                  border: '1px solid #1a2035',
+                  borderRadius: '4px',
+                  color: '#ffffff',
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="completedTrips"
+                stroke="#00ff88"
+                dot={false}
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Active Vehicles Chart */}
+        <div style={{ background: '#0d1526', border: '1px solid #1a2035', borderRadius: '6px', padding: '8px' }}>
+          <div
+            style={{
+              fontSize: '10px',
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+              textTransform: 'uppercase',
+              color: '#6b7280',
+              marginBottom: '8px',
+              paddingLeft: '8px',
+            }}
+          >
+            Active Vehicles (60s)
+          </div>
+          <ResponsiveContainer width="100%" height={120}>
+            <LineChart data={recentMetrics} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a2035" />
+              <XAxis
+                dataKey="time"
+                stroke="#6b7280"
+                style={{ fontSize: '10px' }}
+              />
+              <YAxis
+                stroke="#6b7280"
+                style={{ fontSize: '10px' }}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: '#0d1526',
+                  border: '1px solid #1a2035',
+                  borderRadius: '4px',
+                  color: '#ffffff',
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="activeVehicles"
+                stroke="#4f8ef7"
+                dot={false}
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
