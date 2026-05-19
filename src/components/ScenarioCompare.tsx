@@ -126,42 +126,9 @@ export const ScenarioCompare: React.FC = () => {
     }
   };
 
-  const MetricCell: React.FC<{ value: string | number; label: string }> = ({
-    value,
-    label,
-  }) => (
-    <div style={{ textAlign: 'center' }}>
-      <div
-        style={{
-          fontSize: '10px',
-          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-          textTransform: 'uppercase',
-          color: '#6b7280',
-          marginBottom: '4px',
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: '16px',
-          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-          color: '#ffffff',
-          fontWeight: 'bold',
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-
   const ComparisonMetric: React.FC<{ comparison: ComparisonResult }> = ({
     comparison,
   }) => {
-    const isGood = comparison.isBetter;
-    const color = isGood ? '#00ff88' : '#ff4444';
-    const arrow = isGood ? '↑' : '↓';
-
     return (
       <div
         style={{

@@ -2,8 +2,9 @@
  * CongestionOverlay - Visual overlay showing road congestion by vehicle density
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSimulationStore } from '../store/simulationStore';
+import type { RoadEdge } from '../engine/types';
 
 interface CongestionLevel {
   level: 'low' | 'medium' | 'high';
@@ -46,7 +47,7 @@ export const CongestionOverlay: React.FC<CongestionOverlayProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engine = useSimulationStore((state) => state.engine);
-  const updateIntervalRef = useRef<NodeJS.Timeout>();
+  const updateIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const getColorForDensity = (vehicleCount: number): string => {
     const level = CONGESTION_LEVELS.find(
@@ -71,10 +72,10 @@ export const CongestionOverlay: React.FC<CongestionOverlayProps> = ({
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Get road network and vehicles
-      const roadNetwork = engine.roadNetwork;
+      const network = engine.getNetwork();
       const vehicles = engine.getVehicles();
 
-      if (!roadNetwork) return;
+      if (!network) return;
 
       // Count vehicles on each road edge
       const vehiclesPerEdge = new Map<string, number>();
@@ -84,9 +85,9 @@ export const CongestionOverlay: React.FC<CongestionOverlayProps> = ({
       });
 
       // Draw road segments with congestion colors
-      roadNetwork.edges.forEach((edge) => {
-        const fromNode = roadNetwork.getIntersection(edge.from);
-        const toNode = roadNetwork.getIntersection(edge.to);
+      network.edges.forEach((edge: RoadEdge) => {
+        const fromNode = network.nodes.find((n) => n.id === edge.from);
+        const toNode = network.nodes.find((n) => n.id === edge.to);
 
         if (!fromNode || !toNode) return;
 

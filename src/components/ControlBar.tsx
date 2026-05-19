@@ -123,6 +123,5 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     </div>
   );
 };
-};
 
 export default ControlBar;
